@@ -750,11 +750,11 @@ std::unique_ptr<ButtonList> ObxdAudioProcessorEditor::addList(const int x, const
                                                               ObxdAudioProcessor &filter, const int parameter,
                                                               const String& /*name*/, const String& nameImg)
 {
-    #if JUCE_WINDOWS || JUCE_LINUX
+//    #if JUCE_WINDOWS || JUCE_LINUX
     auto *bl = new ButtonList ((nameImg), h, &processor);
-    #else
-    ButtonList *bl = new ButtonList (imgName, height, &processor);
-    #endif
+//    #else
+//    ButtonList *bl = new ButtonList (nameImg, h, &processor);
+//    #endif
 
     buttonListAttachments.add (new ButtonList::ButtonListAttachment (filter.getPluginState(),
                                                                      ObxdAudioProcessor::getEngineParameterId (parameter),
@@ -878,7 +878,9 @@ void ObxdAudioProcessorEditor::rebuildComponents (ObxdAudioProcessor& ownerFilte
 void ObxdAudioProcessorEditor::createMenu ()
 {
 #if JUCE_MAC
-	bool enablePasteOption = macPasteboard::containsPresetData();	// Check if the clipboard contains data for a Preset
+    juce::MemoryBlock memoryBlock;
+        memoryBlock.fromBase64Encoding(juce::SystemClipboard::getTextFromClipboard());
+        bool enablePasteOption = processor.isMemoryBlockAPreset(memoryBlock);
 #else
     juce::MemoryBlock memoryBlock;
     memoryBlock.fromBase64Encoding(SystemClipboard::getTextFromClipboard());
@@ -1360,7 +1362,7 @@ void ObxdAudioProcessorEditor::MenuActionCallback(int action){
 		processor.serializePreset(serializedData);
 
 		// Place the data onto the clipboard
-		macPasteboard::copyPresetDataToClipboard(serializedData.getData(), serializedData.getSize());
+        juce::SystemClipboard::copyTextToClipboard(serializedData.toBase64Encoding());
 	}
 
 	// Paste from clipboard
@@ -1369,11 +1371,12 @@ void ObxdAudioProcessorEditor::MenuActionCallback(int action){
 		juce::MemoryBlock memoryBlock;
 
 		// Fetch Preset data from the clipboard
-		if (macPasteboard::fetchPresetDataFromClipboard(memoryBlock))
-		{
-			// Load the data
-			processor.loadFromMemoryBlock(memoryBlock);	//loadPreset(memoryBlock);
-		}
+        memoryBlock.fromBase64Encoding(juce::SystemClipboard::getTextFromClipboard());
+        if (memoryBlock.getSize() > 0)
+        {
+            // Load the data
+            processor.loadFromMemoryBlock(memoryBlock);    //loadPreset(memoryBlock);
+        }
 	}
 #else
     // Copy to clipboard
