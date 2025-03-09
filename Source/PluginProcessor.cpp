@@ -57,7 +57,6 @@ AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
 //==============================================================================
 ObxdAudioProcessor::ObxdAudioProcessor()
 	: AudioProcessor(BusesProperties()
-		.withInput("Main", AudioChannelSet::stereo(), true)
 		.withOutput("Main", AudioChannelSet::stereo(), true)),
 programs()
 	, bindings()
